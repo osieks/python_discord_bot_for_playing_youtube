@@ -4,7 +4,8 @@ from pytube import YouTube
 import vlc
 from time import sleep
 
-BOT_TOKEN = "MTIxMDY2MDk5NjQ3Mzk0NjEyNA.G5Zpju.R1OE39xl7tnqjSgYEXwt3YKbCLSiG-QFPjYlmg"
+from secret_bot_token import BOT_TOKEN
+
 CHANNEL_ID = 700787041243496519
 
 bot = commands.Bot(command_prefix="!",intents=discord.Intents.all())
