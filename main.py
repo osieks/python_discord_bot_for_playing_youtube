@@ -70,13 +70,10 @@ async def skip(ctx):
         await ctx.send("najpierw !join")
         return
     else:
-        if len(play_next) > 0:
-            await ctx.send("skipping")
-            voice_client.stop()
-            s = ", ".join(str(x) for x in play_next) 
-            await ctx.send("Kolejka: "+s)
-        else:
-            await ctx.send("nic w kolejce")
+        await ctx.send("skipping")
+        voice_client.stop()
+        s = ", ".join(str(x) for x in play_next) 
+        await ctx.send("Kolejka: "+s)
 
 
 @bot.command()
