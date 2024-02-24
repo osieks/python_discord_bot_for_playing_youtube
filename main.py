@@ -21,29 +21,47 @@ async def on_ready():
     #await channel.send("Bot is ready")
    
 @bot.command()
-async def play(ctx, url):
+async def play(ctx,* , url):
     global voice_client, play_next, play_search
     
-        
     if voice_client is None or ctx.message.guild.voice_client is None:
         await ctx.send("najpierw !join")
         return
     else:
         #await ctx.send("NIE")
-        #try:
-        if 1 <= int(url) <= 10:
-            play_next.append('https://www.youtube.com' + play_search[int(url)]['link'])
-        else:
+        if url == "":
+            play_queue(ctx, voice_client)
             return
-        #except:
-        #    await ctx.send("Wyszukiwanie?")
-        #    #ctx.send("Poproszę o link do YouTube")
-        #    results = YoutubeSearch('eminem', max_results=10).to_dict()
-        #    for v in results:
-        #        ctx.reply('https://www.youtube.com' + v['link'])
-        #    play_search=results
-        #    return
-        d
+        try:
+            print(int(url))
+            if 1 <= int(url) <= len(play_search):
+                print(url+" to liczba")
+                print(play_search[int(url)-1]['url_suffix'])
+                play_next.append('https://www.youtube.com' + play_search[int(url)-1]['url_suffix'])
+            else:
+                await ctx.send("Zly numer")
+                return
+            
+        except ValueError as e:
+            print(e)
+            if "https://www.youtube.com/watch" in url:
+                pass
+            
+            await ctx.send("Wyszukiwanie...")
+            results = YoutubeSearch(url, max_results=5).to_dict()
+            print(results)
+            iterator = 1
+            propozycje = ''
+            for v in results:
+                print(iterator ,v)
+                propozycje=propozycje+(str(iterator)+'. '+ v['title']+'\n')
+                #await ctx.reply('https://www.youtube.com' + v['url_suffix'])
+                iterator+=1
+            
+            await ctx.reply(propozycje)
+            play_search=results
+            return
+        
         play_next.append(url)
         print(play_next)
         
@@ -86,6 +104,14 @@ def play_queue(ctx, voice_client):
     else:
         print("nic w kolejce")
   
+@bot.command()
+async def pause(self, ctx):
+        # Checks if music is playing and pauses it, otherwise sends the player a message that nothing is playing
+        try:
+            ctx.voice_client.pause()
+        except:
+            await ctx.send(f"{ctx.author.mention} i'm not playing music at the moment!")
+    
 @bot.command()
 async def skip(ctx):
     global voice_client
