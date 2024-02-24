@@ -44,6 +44,8 @@ async def play(ctx,* , url):
                 print(url+" to liczba")
                 print(play_search[int(url)-1]['url_suffix'])
                 play_next.append('https://www.youtube.com' + play_search[int(url)-1]['url_suffix'])
+                play_queue(ctx, voice_client)
+                return
             else:
                 await ctx.send("Zly numer")
                 return
@@ -51,7 +53,18 @@ async def play(ctx,* , url):
         except ValueError as e:
             print(e)
             if "https://www.youtube.com/watch" in url:
-                pass
+                pass        
+                play_next.append(url)
+                print(play_next)
+                
+                if ctx.voice_client.is_playing():
+                    await ctx.reply("Dodano do kolejki")
+                    s = ", ".join(str(x) for x in play_next) 
+                    await ctx.send("Kolejka: "+s)
+                else:
+                    await ctx.reply("Zaczynam")
+                    play_queue(ctx, voice_client)
+                return
             
             await ctx.send("Wyszukiwanie...")
             results = YoutubeSearch(url, max_results=5).to_dict()
@@ -67,17 +80,7 @@ async def play(ctx,* , url):
             await ctx.reply(propozycje)
             play_search=results
             return
-        
-        play_next.append(url)
-        print(play_next)
-        
-        if ctx.voice_client.is_playing():
-            await ctx.reply("Dodano do kolejki")
-            s = ", ".join(str(x) for x in play_next) 
-            await ctx.send("Kolejka: "+s)
-        else:
-            await ctx.reply("Zaczynam")
-            play_queue(ctx, voice_client)
+
 
 def play_queue(ctx, voice_client):
     global play_next,play_search
@@ -112,7 +115,8 @@ def play_queue(ctx, voice_client):
         print("nic w kolejce")
   
 @bot.command()
-async def pause(self, ctx):
+async def pause(ctx):
+        global voice_client
         # Checks if music is playing and pauses it, otherwise sends the player a message that nothing is playing
         try:
             ctx.voice_client.pause()
