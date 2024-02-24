@@ -1,11 +1,17 @@
 from discord.ext import commands
 import discord
-from pytube import YouTube
 import vlc
 from time import sleep
-from youtube_search import YoutubeSearch
+
 
 from secret_bot_token import BOT_TOKEN
+from pytube import YouTube
+from youtube_search import YoutubeSearch
+
+#pytube fix for age restriction
+from pytube.innertube import _default_clients 
+_default_clients["ANDROID_MUSIC"] = _default_clients["ANDROID"]
+
 
 CHANNEL_ID = 700787041243496519
 
@@ -82,12 +88,13 @@ def play_queue(ctx, voice_client):
         
         #await ctx.send("Playing " + url)
         print(url)
-        if "https://www.youtube.com/watch" in url: 
-            yt = YouTube(url)
-        else:
+        if "https://www.youtube.com/watch" not in url: 
             print("bad link")
             play_next.pop(0)
             return
+        
+        yt = YouTube(url)
+            
         # Get the highest quality audio stream
         audio_stream = yt.streams.get_audio_only()
 
