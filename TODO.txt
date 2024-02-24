@@ -1,2 +1,4 @@
 xxx 1. wyszukiwanie 
 xxx 2. age restriction
+xxx 3. help
+4. running first from search -> next command for going to 2,3,4 etc ?
