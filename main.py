@@ -4,7 +4,6 @@ import vlc
 from time import sleep
 
 
-from secret_bot_token import BOT_TOKEN
 from pytube import YouTube
 from youtube_search import YoutubeSearch
 
@@ -13,6 +12,7 @@ from pytube.innertube import _default_clients
 _default_clients["ANDROID_MUSIC"] = _default_clients["ANDROID"]
 
 
+from secret_bot_token import BOT_TOKEN
 CHANNEL_ID = 700787041243496519
 
 bot = commands.Bot(command_prefix="!",intents=discord.Intents.all())
@@ -25,8 +25,39 @@ async def on_ready():
     print("Bot is ready")
     channel = bot.get_channel(CHANNEL_ID)
     #await channel.send("Bot is ready")
-   
-@bot.command()
+  
+@bot.command(help='wyswietlenie pomoc')
+async def helpme(ctx):
+    await ctx.send("""
+!helpme -> pomoc
+!github -> github repo
+
+!join -> dołączenie do kanału
+!leave -> wyjście z kanału
+
+!play link-> odtwarzanie linku
+!play (...) -> wyszukiwanie
+!play (1-5) -> odtwarzanie numeru z wyszukiwania
+!skip -> odtwarzanie kolejnego utworu w kolejce
+
+!pause -> zatrzymanie odtwarzania
+!unpause -> wznowienia odtwarzania
+
+!queue -> kolejka odtwarzania""")
+    return
+
+@bot.command(help='wyświetlenie github repo')
+async def github(ctx):
+    await ctx.send("https://github.com/osieks/python_discord_bot_for_playing_youtube")
+    return
+
+@bot.command(help='wznowienia odtwarzania')
+async def unpause(ctx):
+    global voice_client
+    voice_client.resume()
+    return
+
+@bot.command(help='link -> odtwarzanie linku\n (...) -> wyszukiwanie\n (1-5) -> odtwarzanie numeru z wyszukiwania\n')
 async def play(ctx,* , url):
     global voice_client, play_next, play_search
     
@@ -114,16 +145,16 @@ def play_queue(ctx, voice_client):
     else:
         print("nic w kolejce")
   
-@bot.command()
+@bot.command(help='zatrzymanie odtwarzania')
 async def pause(ctx):
         global voice_client
         # Checks if music is playing and pauses it, otherwise sends the player a message that nothing is playing
         try:
-            ctx.voice_client.pause()
+            voice_client.pause()
         except:
-            await ctx.send(f"{ctx.author.mention} i'm not playing music at the moment!")
+            await ctx.send(f"{ctx.author.mention} i'm not playing!")
     
-@bot.command()
+@bot.command(help='odtwarzanie kolejnego utworu w kolejce')
 async def skip(ctx):
     global voice_client
     global play_next
@@ -140,7 +171,7 @@ async def skip(ctx):
         s = ", ".join(str(x) for x in play_next) 
         await ctx.send("Kolejka: "+s)
 
-@bot.command()
+@bot.command(help='wyświetlenie kolejki odtwarzania')
 async def queue(ctx):
     global play_next
     
@@ -150,7 +181,7 @@ async def queue(ctx):
     else:
         await ctx.send("Nic w kolejce")
 
-@bot.command()
+@bot.command(help='dołączenie do kanału głosowego')
 async def join(ctx):
     global voice_client
     if ctx.author.voice is None:
@@ -161,7 +192,7 @@ async def join(ctx):
         voice_client = await channel.connect()
         await ctx.send("No hej")
     
-@bot.command()
+@bot.command(help='wyjście z kanału głosowego')
 async def leave(ctx):
     global voice_client
     if voice_client is None:
