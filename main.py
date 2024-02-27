@@ -36,8 +36,8 @@ async def helpme(ctx):
 !leave -> wyjście z kanału
 
 !play link-> odtwarzanie linku
-!play (...) -> wyszukiwanie
-!play (1-5) -> odtwarzanie numeru z wyszukiwania
+!play (...) -> wyszukiwanie i uruchomienie 1 
+!play (1-3) -> odtwarzanie numeru z wyszukiwania
 !skip -> odtwarzanie kolejnego utworu w kolejce
 
 !pause -> zatrzymanie odtwarzania
@@ -57,7 +57,7 @@ async def unpause(ctx):
     voice_client.resume()
     return
 
-@bot.command(help='link -> odtwarzanie linku\n (...) -> wyszukiwanie\n (1-5) -> odtwarzanie numeru z wyszukiwania\n')
+@bot.command(help='link -> odtwarzanie linku\n (...) -> wyszukiwanie i uruchomienie pierwszego \n (1-3) -> odtwarzanie numeru z wyszukiwania\n')
 async def play(ctx,* , url):
     global voice_client, play_next, play_search
     
