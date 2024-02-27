@@ -75,6 +75,7 @@ async def play(ctx,* , url):
                 print(url+" to liczba")
                 print(play_search[int(url)-1]['url_suffix'])
                 play_next.append('https://www.youtube.com' + play_search[int(url)-1]['url_suffix'])
+                await ctx.send("Playing: "+play_search[int(url)-1]['title']+' https://www.youtube.com' + play_search[int(url)-1]['url_suffix'])
                 play_queue(ctx, voice_client)
                 return
             else:
@@ -98,7 +99,7 @@ async def play(ctx,* , url):
                 return
             
             await ctx.send("Wyszukiwanie...")
-            results = YoutubeSearch(url, max_results=5).to_dict()
+            results = YoutubeSearch(url, max_results=3).to_dict()
             print(results)
             iterator = 1
             propozycje = ''
@@ -106,6 +107,10 @@ async def play(ctx,* , url):
                 print(iterator ,v)
                 propozycje=propozycje+(str(iterator)+'. '+ v['title']+'\n')
                 #await ctx.reply('https://www.youtube.com' + v['url_suffix'])
+                if iterator == 1: 
+                    await ctx.reply('Playing 1: https://www.youtube.com' + v['url_suffix'])
+                    play_next.append('https://www.youtube.com' + v['url_suffix'])
+                    play_queue(ctx, voice_client)
                 iterator+=1
             
             await ctx.reply(propozycje)
@@ -134,6 +139,7 @@ def play_queue(ctx, voice_client):
 
         # Download the audio stream
         audio_stream.download(filename='audio.mp4')
+        print('pobrano plik '+ yt.title)
         try:
             voice_client.play(discord.FFmpegPCMAudio(executable=r"C:\Users\mateu\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-6.1.1-full_build\bin\ffmpeg.exe",source="audio.mp4"), after=lambda e: play_queue(ctx,voice_client))
         except:
