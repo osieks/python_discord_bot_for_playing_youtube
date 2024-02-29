@@ -19,6 +19,7 @@ bot = commands.Bot(command_prefix="!",intents=discord.Intents.all())
 voice_client = None
 play_next = []
 play_search = []
+ffmpeg_path=r"C:\Users\mateu\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-6.1.1-full_build\bin\ffmpeg.exe"
 
 @bot.event
 async def on_ready():
@@ -97,25 +98,38 @@ async def play(ctx,* , url):
                     await ctx.reply("Zaczynam")
                     play_queue(ctx, voice_client)
                 return
+          
+        ### tutaj tab może się nie zgadzać -> naprawianie try jeden w drugim  
+        await ctx.send("Wyszukiwanie...")
+        results = YoutubeSearch(url, max_results=3).to_dict()
+        print(results)
+        iterator = 1
+        propozycje = ''
+        for v in results:
+            print(iterator ,v)
+            print(v['duration'])
+            if v['duration'].count(':')>1:
+                await ctx.reply("za długi "+ v['title']+" "+v['duration'])
+                print ("za długi "+ v['title']+" "+v['duration'])
+                continue
             
-            await ctx.send("Wyszukiwanie...")
-            results = YoutubeSearch(url, max_results=3).to_dict()
-            print(results)
-            iterator = 1
-            propozycje = ''
-            for v in results:
-                print(iterator ,v)
-                propozycje=propozycje+(str(iterator)+'. '+ v['title']+'\n')
-                #await ctx.reply('https://www.youtube.com' + v['url_suffix'])
-                if iterator == 1: 
-                    await ctx.reply('Playing 1: https://www.youtube.com' + v['url_suffix'])
-                    play_next.append('https://www.youtube.com' + v['url_suffix'])
-                    play_queue(ctx, voice_client)
-                iterator+=1
-            
-            await ctx.reply(propozycje)
-            play_search=results
-            return
+            propozycje=propozycje+(str(iterator)+'. '+ v['title']+'\n')
+            #await ctx.reply('https://www.youtube.com' + v['url_suffix'])
+            if iterator == 1: 
+                
+                while not ctx.voice_client.is_playing():
+                    try:
+                        await ctx.reply('Playing 1: https://www.youtube.com' + v['url_suffix'])
+                        play_next.append('https://www.youtube.com' + v['url_suffix'])
+                        play_queue(ctx, voice_client)
+                    except Exception as e:
+                        await ctx.reply('Play error')
+                        await ctx.reply(e)
+            iterator+=1
+        
+        await ctx.reply(propozycje)
+        play_search=results
+        return
 
 
 def play_queue(ctx, voice_client):
@@ -132,16 +146,17 @@ def play_queue(ctx, voice_client):
             play_next.pop(0)
             return
         
-        yt = YouTube(url)
-            
-        # Get the highest quality audio stream
-        audio_stream = yt.streams.get_audio_only()
-
-        # Download the audio stream
-        audio_stream.download(filename='audio.mp4')
-        print('pobrano plik '+ yt.title)
         try:
-            voice_client.play(discord.FFmpegPCMAudio(executable=r"C:\Users\mateu\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-6.1.1-full_build\bin\ffmpeg.exe",source="audio.mp4"), after=lambda e: play_queue(ctx,voice_client))
+            yt = YouTube(url)
+                
+            # Get the highest quality audio stream
+            audio_stream = yt.streams.get_audio_only()
+
+            # Download the audio stream
+            audio_stream.download(filename='audio.mp4')
+            
+            print('pobrano plik '+ yt.title)
+            voice_client.play(discord.FFmpegPCMAudio(executable=ffmpeg_path,source="audio.mp4"), after=lambda e: play_queue(ctx,voice_client))
         except:
            # ctx.send("Występil blad")
             print("wystapił błąd")

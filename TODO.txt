@@ -1,4 +1,8 @@
 xxx 1. wyszukiwanie 
 xxx 2. age restriction
 xxx 3. help
-4. running first from search -> next command for going to 2,3,4 etc ?
+xxx 4. running first from search -> next command for going to 2,3,4 etc ?
+xxx 5. print error while cannot play
+        xxx a. while searching
+        b. while playing from link
+6. don't download long 
