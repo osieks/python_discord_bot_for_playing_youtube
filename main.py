@@ -63,77 +63,70 @@ async def play(ctx,* , url):
     global voice_client, play_next, play_search
     
     if voice_client is None or ctx.message.guild.voice_client is None:
-        await ctx.send("najpierw !join")
+        await ctx.send("dołączam do ciebie ")
+        await join(ctx)
+    #await ctx.send("NIE")
+    if url == "":
+        play_queue(ctx)
         return
-    else:
-        #await ctx.send("NIE")
-        if url == "":
-            play_queue(ctx, voice_client)
+    try:
+        print(int(url))
+        if 1 <= int(url) <= len(play_search):
+            print(url+" to liczba")
+            print(play_search[int(url)-1]['url_suffix'])
+            play_next.append('https://www.youtube.com' + play_search[int(url)-1]['url_suffix'])
+            await ctx.send("Playing: "+play_search[int(url)-1]['title']+' https://www.youtube.com' + play_search[int(url)-1]['url_suffix'])
+            play_queue(ctx)
             return
-        try:
-            print(int(url))
-            if 1 <= int(url) <= len(play_search):
-                print(url+" to liczba")
-                print(play_search[int(url)-1]['url_suffix'])
-                play_next.append('https://www.youtube.com' + play_search[int(url)-1]['url_suffix'])
-                await ctx.send("Playing: "+play_search[int(url)-1]['title']+' https://www.youtube.com' + play_search[int(url)-1]['url_suffix'])
-                play_queue(ctx, voice_client)
-                return
-            else:
-                await ctx.send("Zly numer")
-                return
-            
-        except ValueError as e:
-            print(e)
-            if "https://www.youtube.com/watch" in url:
-                pass        
-                play_next.append(url)
-                print(play_next)
-                
-                if ctx.voice_client.is_playing():
-                    await ctx.reply("Dodano do kolejki")
-                    s = ", ".join(str(x) for x in play_next) 
-                    await ctx.send("Kolejka: "+s)
-                else:
-                    await ctx.reply("Zaczynam")
-                    play_queue(ctx, voice_client)
-                return
-          
-        ### tutaj tab może się nie zgadzać -> naprawianie try jeden w drugim  
-        await ctx.send("Wyszukiwanie...")
-        results = YoutubeSearch(url, max_results=3).to_dict()
-        print(results)
-        iterator = 1
-        propozycje = ''
-        for v in results:
-            print(iterator ,v)
-            print(v['duration'])
-            if v['duration'].count(':')>1:
-                await ctx.reply("za długi "+ v['title']+" "+v['duration'])
-                print ("za długi "+ v['title']+" "+v['duration'])
-                continue
-            
-            propozycje=propozycje+(str(iterator)+'. '+ v['title']+'\n')
-            #await ctx.reply('https://www.youtube.com' + v['url_suffix'])
-            if iterator == 1: 
-                
-                while not ctx.voice_client.is_playing():
-                    try:
-                        await ctx.reply('Playing 1: https://www.youtube.com' + v['url_suffix'])
-                        play_next.append('https://www.youtube.com' + v['url_suffix'])
-                        play_queue(ctx, voice_client)
-                    except Exception as e:
-                        await ctx.reply('Play error')
-                        await ctx.reply(e)
-            iterator+=1
+        else:
+            await ctx.send("Zly numer")
+            return
         
-        await ctx.reply(propozycje)
-        play_search=results
-        return
+    except ValueError as e:
+        print(e)
+        if "https://www.youtube.com/watch" in url:
+            pass        
+            play_next.append(url)
+            print(play_next)
+            
+            if ctx.voice_client.is_playing():
+                await ctx.reply("Dodano do kolejki")
+                s = ", ".join(str(x) for x in play_next) 
+                await ctx.send("Kolejka: "+s)
+            else:
+                await ctx.reply("Zaczynam")
+                play_queue(ctx)
+            return
+        
+    ### tutaj tab może się nie zgadzać -> naprawianie try jeden w drugim  
+    await ctx.send("Wyszukiwanie...")
+    results = YoutubeSearch(url, max_results=3).to_dict()
+    print(results)
+    iterator = 1
+    propozycje = ''
+    for v in results:
+        print(iterator ,v)
+        print(v['duration'])
+        if v['duration'].count(':')>1:
+            await ctx.reply("za długi "+ v['title']+" "+v['duration'])
+            print ("za długi "+ v['title']+" "+v['duration'])
+            continue
+        
+        propozycje=propozycje+(str(iterator)+'. '+ v['title']+'\n')
+        #await ctx.reply('https://www.youtube.com' + v['url_suffix'])
+        if iterator == 1:  
+            await ctx.reply('Playing 1: https://www.youtube.com' + v['url_suffix'])
+            play_next.append('https://www.youtube.com' + v['url_suffix'])
+            play_queue(ctx)
+        iterator+=1
+    
+    await ctx.reply(propozycje)
+    play_search=results
+    return
 
 
-def play_queue(ctx, voice_client):
-    global play_next,play_search
+def play_queue(ctx):
+    global play_next,play_search,voice_client  
     
     print(play_next)
     if len(play_next) > 0 and ctx.voice_client.is_playing() == False:
@@ -146,21 +139,27 @@ def play_queue(ctx, voice_client):
             play_next.pop(0)
             return
         
-        try:
-            yt = YouTube(url)
-                
-            # Get the highest quality audio stream
-            audio_stream = yt.streams.get_audio_only()
-
-            # Download the audio stream
-            audio_stream.download(filename='audio.mp4')
+        #try:
+        yt = YouTube(url)
             
-            print('pobrano plik '+ yt.title)
-            voice_client.play(discord.FFmpegPCMAudio(executable=ffmpeg_path,source="audio.mp4"), after=lambda e: play_queue(ctx,voice_client))
-        except:
-           # ctx.send("Występil blad")
-            print("wystapił błąd")
+        print(yt)
+        # Get the highest quality audio stream
+        #try:
+        #audio_stream = yt.streams.get_audio_only()
+        audio_stream = yt.streams.filter(only_audio=True).all()
+
+        # Download the audio stream
+        audio_stream.download(filename='audio.mp4')
+        
+        print('pobrano plik '+ yt.title)
+        voice_client.play(discord.FFmpegPCMAudio(executable=ffmpeg_path,source="audio.mp4"), after=lambda e: play_queue(ctx))
+        #except:
+        # ctx.send("Występil blad")
+            #print("wystapił błąd")
         play_next.pop(0)
+            
+        #except Exception as e:
+        #    print(f"An error occurred: {e}")
         
         #await ctx.send("Kolejka: " + play_next)
     else:
