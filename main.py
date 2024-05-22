@@ -15,6 +15,9 @@ _default_clients["ANDROID_MUSIC"] = _default_clients["ANDROID"]
 from secret_bot_token import BOT_TOKEN
 CHANNEL_ID = 700787041243496519
 
+import os
+os.add_dll_directory(r'E:\VLC')
+
 bot = commands.Bot(command_prefix="!",intents=discord.Intents.all())
 voice_client = None
 play_next = []
